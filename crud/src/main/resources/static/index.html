@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>File Manager</title>
+    <script>
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            // const filename = document.getElementById('filenameInput').value;
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please select a file.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(`/api/files/upload/${file.name}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                alert('File uploaded successfully');
+                listFiles();
+            } else {
+                alert('File upload failed');
+            }
+        }
+
+        async function listFiles() {
+            const response = await fetch('/api/files');
+            const files = await response.json();
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+
+            files.forEach(file => {
+                const li = document.createElement('li');
+                li.textContent = file;
+                fileList.appendChild(li);
+            });
+        }
+
+        async function readFile() {
+            const filename = document.getElementById('filenameReadInput').value;
+            const response = await fetch(`/api/files/${filename}`);
+
+            if (response.ok) {
+                const content = await response.text();
+                document.getElementById('fileContent').textContent = content;
+            } else {
+                alert('File not found');
+            }
+        }
+
+        async function deleteFile() {
+            const filename = document.getElementById('filenameDeleteInput').value;
+
+            if (!filename) {
+                alert("Please enter a filename.");
+                return;
+            }
+
+            const response = await fetch(`/api/files/delete/${filename}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('File deleted successfully');
+                listFiles();
+            } else {
+                alert('File delete failed');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', listFiles);
+    </script>
+</head>
+<body>
+    <h1>File Manager</h1>
+
+    <h2>Upload File</h2>
+    <!-- <input type="text" id="filenameInput" placeholder="Enter filename" required> -->
+    <input type="file" id="fileInput" required>
+    <button onclick="uploadFile()">Upload</button>
+
+    <h2>List Files</h2>
+    <ul id="fileList"></ul>
+
+    <h2>Read File</h2>
+    <input type="text" id="filenameReadInput" placeholder="Enter filename" required>
+    <button onclick="readFile()">Read</button>
+    <pre id="fileContent"></pre>
+
+    <h2>Delete File</h2>
+    <input type="text" id="filenameDeleteInput" placeholder="Enter filename" required>
+    <button onclick="deleteFile()">Delete</button>
+</body>
+</html>
